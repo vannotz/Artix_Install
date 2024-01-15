@@ -1,0 +1,138 @@
+# login as root
+user:root
+passwd:artix
+
+# load your keymap, mine is br-abnt2 
+loadkeys br-abnt2
+
+# rfkill may block wifi
+rfkill unblock wifi
+
+# connect to wireless internet
+connmanctl
+	scan wifi
+  agent on
+	# if this returns an error, reboot
+	# list devices
+	devices
+	# connect to your wifi device
+	connect wifi_XXXXXXX
+# ping to check connection
+ping -c3 gnu.org
+
+# check the install disk with lsblk, will be using /dev/sda
+# partition disk with fdisk
+fdisk /dev/sda
+# make 2 partitions, nº1 512M (ESP), nº2 rest of the disk (CRYPT)
+
+# format partitions (UEFI)
+mkfs.fat -F32 /dev/sda1 <- ESP partition
+fatlabel /dev/sda1 ESP
+cryptsetup luksFormat /dev/sda2
+cryptsetup luksOpen /dev/sda2 luks
+
+# Create LVM
+# x = the size of your swap partition, at least 16 is recommended
+pvcreate /dev/mapper/luks
+vgcreate vg0 /dev/mapper/luks
+lvcreate --size xG vg0 --name swap
+lvcreate -l +100%FREE vg0 --name root
+mkfs.ext4 -L ROOT /dev/mapper/vg0-root
+mkswap -L SWAP /dev/mapper/vg0-swap
+
+# mount partitions and turn on swap
+# MOUNT ROOT BEFORE MOUNTING BOOT!
+mount /dev/mapper/vg0-root /mnt
+mkdir /mnt/boot
+mount /dev/sda1 /mnt/boot
+swapon /dev/mapper/vg0-swap
+
+# basestrapping
+basestrap /mnt base base-devel dinit elogind-dinit linux-zen linux-zen-headers linux-firmware networkmanager-dinit efibootmgr lvm2 cryptsetup intel-ucode vim
+# linux-zen-headers only necessary if on nvidia
+# intel-ucode if on intel, amd-ucode if on amd
+# networkmanager is needed for wireless network, you can only install dhcpcd-runit if you just use ethernet
+# you can change networkmanager-runit for something like iwd-runit if you are more familiar with it, I recommend networkmanager
+
+## Post-Basestrap 
+# generate fstab
+fstabgen -U /mnt >> /mnt/etc/fstab
+
+# chroot into system
+artix-chroot /mnt bash
+
+# configure clock
+ln -sf /usr/share/zoneinfo/Region/City /etc/localtime
+hwclock --systohc
+
+# choose and set locale
+# uncomment desired locale, usually en_US.UTF-8
+vim /etc/locale.gen
+# generate locale 
+locale-gen
+# set locale systemwide
+vim /etc/locale.conf
+	export LANG="en_US.UTF-8"
+	export LC_COLLATE="C"
+
+# add user and add to wheel group
+# $USER = your user
+useradd -mG wheel $USER
+
+# configure wheel group
+EDITOR=vim visudo
+# uncomment %wheel ALL=(ALL:ALL) ALL
+
+# configure passwords
+passwd
+passwd $USER
+
+# network config
+# will be using 'artix' as the hostname, change to your liking
+vim /etc/hostname
+	artix
+# you may remove the "::1" line if you disable ipv6
+vim /etc/hosts
+	127.0.0.1	      localhost
+	::1             localhost
+ 	127.0.1.1       artix.localdomain  artix
+  0.0.0.0         0.0.0.0
+ ln -s /etc/runit/sv/connmand /etc/runit/runsvdir/default
+
+# modify mkinitcpio for encryption support
+  vim /etc/mkinitcpio.conf
+# add ext4 to MODULES=()
+# add encrypt lvm2 to HOOKS=() before filesystems
+  mkinitcpio -P
+
+# create efistub
+# blkid to check UUIDs
+efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/dev/sda2:luks:allow-discards root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw initrd=\intel-ucode initrd=\initramfs-linux-zen.img' -v
+# resume = SWAP
+# -p 1 = ESP partition number (if /mnt/boot is mounted on /dev/sda1 then -p 1, if mounted on /dev/sda2 -p 2 ...)
+# add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
+# my kernel parameters, for reference
+rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
+# blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommend if you eventually install the proprietary nvidia drivers
+# initrd=\*-ucode for specific cpu (amd or intel)
+# -zen because of the zen kernel
+
+
+## Personal Post-Install Basic Needs
+# configure keyboard layout
+vim /etc/vconsole.conf
+  KEYMAP=br-abnt2
+vim /etc/X11/xorg.conf.d/00-keyboard.conf
+	Section "InputClass"
+		Identifier "keyboard layout"
+		MatchIsKeyboard "yes"
+		Option "XkbLayout" "br"
+		Option "XkbVariant" "abnt2"
+	EndSection
+
+# load legacy oss modules (needed for slstatus' vol_perc)
+vim /etc/modules-load.d/modules.conf
+	snd_mixer_oss
+# enable performance support for intel graphics (Sandy Bridge and onwards)
+vim /usr/lib/sysctl.d/60-mdapi.conf
+	dev.i915.perf_stream_paranoid=0
