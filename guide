@@ -97,13 +97,13 @@ vim /etc/hosts
 	::1             localhost
  	127.0.1.1       artix.localdomain  artix
   0.0.0.0         0.0.0.0
- ln -s /etc/runit/sv/connmand /etc/runit/runsvdir/default
+ln -s /etc/runit/sv/connmand /etc/runit/runsvdir/default
 
 # modify mkinitcpio for encryption support
-  vim /etc/mkinitcpio.conf
+vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
 # add encrypt lvm2 to HOOKS=() before filesystems
-  mkinitcpio -P
+mkinitcpio -P
 
 # create efistub
 # blkid to check UUIDs
