@@ -11,7 +11,7 @@ rfkill unblock wifi
 # connect to wireless internet
 connmanctl
 	scan wifi
-  agent on
+	agent on
 	# if this returns an error, reboot
 	# list devices
 	devices
