@@ -93,11 +93,12 @@ vim /etc/hostname
 	artix
 # you may remove the "::1" line if you disable ipv6
 vim /etc/hosts
-	127.0.0.1	      localhost
+	127.0.0.1	localhost
 	::1             localhost
- 	127.0.1.1       artix.localdomain  artix
-  0.0.0.0         0.0.0.0
-ln -s /etc/runit/sv/connmand /etc/runit/runsvdir/default
+ 	127.0.1.1       artix.localdomain artix
+	0.0.0.0         0.0.0.0
+ln -s /etc/runit/sv/NetworkManager /etc/runit/runsvdir/default
+# here you may change "NetworkManager" for your client of choice, i.e dhcpcd, iwd etc
 
 # modify mkinitcpio for encryption support
 vim /etc/mkinitcpio.conf
