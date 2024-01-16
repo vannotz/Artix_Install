@@ -118,6 +118,11 @@ rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.
 # initrd=\*-ucode for specific cpu (amd or intel)
 # -zen because of the zen kernel
 
+# unmount everything before rebooting (it's good pratice)
+exit
+umount -R /mnt
+swapoff -a
+
 
 ## Personal Post-Install Basic Needs
 # configure keyboard layout
