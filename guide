@@ -51,7 +51,7 @@ mount /dev/sda1 /mnt/boot
 swapon /dev/mapper/vg0-swap
 
 # basestrapping
-basestrap /mnt base base-devel dinit elogind-dinit linux-zen linux-zen-headers linux-firmware networkmanager-dinit efibootmgr lvm2 cryptsetup intel-ucode vim
+basestrap /mnt base base-devel runit elogind-runit linux-zen linux-zen-headers linux-firmware networkmanager-runit efibootmgr lvm2 cryptsetup intel-ucode vim
 # linux-zen-headers only necessary if on nvidia
 # intel-ucode if on intel, amd-ucode if on amd
 # networkmanager is needed for wireless network, you can only install dhcpcd-runit if you just use ethernet
