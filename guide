@@ -30,7 +30,7 @@ fdisk /dev/sda
 # format partitions (UEFI)
 mkfs.fat -F32 /dev/sda1 <- ESP partition
 fatlabel /dev/sda1 ESP
-cryptsetup luksFormat /dev/sda2
+cryptsetup luksFormat /dev/sda2 <- CRYPT partition
 cryptsetup luksOpen /dev/sda2 luks
 
 # Create LVM
