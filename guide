@@ -5,6 +5,9 @@ passwd:artix
 # load your keymap, mine is br-abnt2 
 loadkeys br-abnt2
 
+# disable annoying beep
+rmmod pcspkr
+
 # rfkill may block wifi
 rfkill unblock wifi
 
@@ -122,6 +125,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 # my kernel parameters, for reference
 rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
+# blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
 # -zen because of the zen kernel
 
@@ -129,6 +133,10 @@ rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.
 pacman -S nvidia-dkms
 
 ## Personal Post-Install Basic Needs
+# install packages needed to build suckless software and start an xorg server
+pacman -S git libx11 libxft libxinerama xorg-server xorg-xinit freetype2
+# xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit
+
 # configure keyboard layout for the tty
 vim /etc/vconsole.conf
 	KEYMAP=br-abnt2
