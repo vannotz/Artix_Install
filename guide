@@ -24,6 +24,8 @@ ping -c3 gnu.org
 # partition disk with fdisk
 fdisk /dev/sda
 # make 2 partitions, nº1 512M (ESP), nº2 rest of the disk (CRYPT)
+# make the ESP partition 1G if you plan on using multiple different kernels
+# the ESP partition can be as low as 256M (512/2) if not on nvidia, or 384M (512/2+512/4) if on nvidia, both leave some wiggle room 
 
 # format partitions (UEFI)
 mkfs.fat -F32 /dev/sda1 <- ESP partition
@@ -32,11 +34,12 @@ cryptsetup luksFormat /dev/sda2
 cryptsetup luksOpen /dev/sda2 luks
 
 # Create LVM
-# x = the size of your swap partition, at least 16 is recommended
 pvcreate /dev/mapper/luks
 vgcreate vg0 /dev/mapper/luks
 lvcreate --size xG vg0 --name swap
+# x = the size of your swap partition, a value between 100% and 200% of your total ram size is recommended
 lvcreate -l +100%FREE vg0 --name root
+# I don't much care for creating a separate home partition
 mkfs.ext4 -L ROOT /dev/mapper/vg0-root
 mkswap -L SWAP /dev/mapper/vg0-swap
 
@@ -103,7 +106,9 @@ ln -s /etc/runit/sv/NetworkManager /etc/runit/runsvdir/default
 # modify mkinitcpio for encryption support
 vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
+# if on nvidia, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
 # add encrypt lvm2 to HOOKS=() before filesystems
+# uncomment COMPRESSION="lz4" for slightly faster boot time
 mkinitcpio -P
 
 # create efistub
@@ -119,6 +124,9 @@ rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommend if you eventually install the proprietary nvidia drivers
 # initrd=\*-ucode for specific cpu (amd or intel)
 # -zen because of the zen kernel
+
+# install the nvidia-dkms kernel if needed
+pacman -S nvidia-dkms
 
 # unmount everything before rebooting (it's good pratice)
 exit
