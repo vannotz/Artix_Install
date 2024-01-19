@@ -111,10 +111,10 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 # resume = SWAP
 # -p 1 = ESP partition number (if /mnt/boot is the mount point for /dev/sda1, then -p 1, if the moint point is /dev/sda2, then -p 2 ...)
 # i recommend eventually switching from pointing efibootmgr with the partition scheme to using each partition's UUIDs, run blkid to get them
-	# the efistub will look something like this, mind the "=UUID=" between the partition and it's UUID
-		(...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
+# the efistub will look something like this, mind the "=UUID=" between the partition and it's UUID
+(...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
-	# my kernel parameters, for reference
+# my kernel parameters, for reference
 rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommend if you eventually install the proprietary nvidia drivers
 # initrd=\*-ucode for specific cpu (amd or intel)
