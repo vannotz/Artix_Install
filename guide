@@ -128,12 +128,6 @@ rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.
 # install the nvidia-dkms kernel if needed
 pacman -S nvidia-dkms
 
-# unmount everything before rebooting (it's good pratice)
-exit
-umount -R /mnt
-swapoff -a
-
-
 ## Personal Post-Install Basic Needs
 # configure keyboard layout for the tty
 vim /etc/vconsole.conf
@@ -153,3 +147,10 @@ vim /etc/modules-load.d/modules.conf
 # enable performance support for intel graphics (Sandy Bridge and onwards)
 vim /usr/lib/sysctl.d/60-mdapi.conf
 	dev.i915.perf_stream_paranoid=0
+
+# unmount everything before rebooting (it's good pratice)
+exit
+umount -R /mnt
+swapoff -a
+poweroff
+# remove the USB stick or change the boot order on the BIOS before booting again
