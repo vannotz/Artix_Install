@@ -114,7 +114,7 @@ mkinitcpio -P
 # create efistub
 efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/dev/sda2:luks:allow-discards root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw initrd=\intel-ucode initrd=\initramfs-linux-zen.img' -v
 # resume = SWAP
-# -p 1 = ESP partition number (if /mnt/boot is the mount point for /dev/sda1, then -p 1, if the moint point is /dev/sda2, then -p 2 ...)
+# -p 1 = ESP partition number (if /mnt/boot is the mount point for /dev/sda1, then -p 1, if the moint point for /dev/sda2, then -p 2 ...)
 # i recommend eventually switching from pointing efibootmgr with the partition scheme to using each partition's UUIDs, run blkid to get them
 # the efistub will look something like this, mind the "=UUID=" between the partition and it's UUID
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
