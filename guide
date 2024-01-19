@@ -135,9 +135,10 @@ swapoff -a
 
 
 ## Personal Post-Install Basic Needs
-# configure keyboard layout
+# configure keyboard layout for the tty
 vim /etc/vconsole.conf
 	KEYMAP=br-abnt2
+# configure keyboard layout for xorg
 vim /etc/X11/xorg.conf.d/00-keyboard.conf
 	Section "InputClass"
 		Identifier "keyboard layout"
