@@ -121,7 +121,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
 rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
-# blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommend if you eventually install the proprietary nvidia drivers
+# blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # initrd=\*-ucode for specific cpu (amd or intel)
 # -zen because of the zen kernel
 
