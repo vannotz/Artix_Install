@@ -107,12 +107,14 @@ vim /etc/mkinitcpio.conf
 mkinitcpio -P
 
 # create efistub
-# blkid to check UUIDs
 efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/dev/sda2:luks:allow-discards root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw initrd=\intel-ucode initrd=\initramfs-linux-zen.img' -v
 # resume = SWAP
 # -p 1 = ESP partition number (if /mnt/boot is mounted on /dev/sda1 then -p 1, if mounted on /dev/sda2 -p 2 ...)
+# i recommend eventually switching from pointing efibootmgr with the partition scheme to using each partition's UUIDs as those are unchanging as long as the formating stays the same
+	# the efistub would look something like this
+		(...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
-# my kernel parameters, for reference
+	# my kernel parameters, for reference
 rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommend if you eventually install the proprietary nvidia drivers
 # initrd=\*-ucode for specific cpu (amd or intel)
