@@ -26,9 +26,9 @@ ping -c3 gnu.org
 # check the install disk with lsblk, will be using /dev/sda
 # partition disk with fdisk
 fdisk /dev/sda
-# make 2 partitions, nº1 512M (ESP), nº2 rest of the disk (CRYPT)
+# make 2 partitions, nº1 384M (ESP), nº2 rest of the disk (CRYPT)
 # make the ESP partition 1G if you plan on using multiple different kernels
-# the ESP partition can be as low as 256M (512/2) if not on nvidia, or 384M (512/2+512/4) if on nvidia, both leave some wiggle room 
+# the ESP partition can be as low as 256M (512/2) if not on nvidia and with only one kernel
 
 # format partitions (UEFI)
 mkfs.fat -F32 /dev/sda1 <- ESP partition
