@@ -27,6 +27,7 @@ ping -c3 gnu.org
 # partition disk with fdisk
 fdisk /dev/sda
 # make 2 partitions, nº1 512M (ESP) marked as "EFI System" type (1), nº2 rest of the disk (CRYPT) with the default "Linux filesystem" type (20)
+# the ESP partiton can be as low as 256M if not on nvidia
 # make the ESP partition 1G if you plan on using multiple different kernels
 
 # format partitions (UEFI)
@@ -96,12 +97,12 @@ passwd $USER
 # will be using 'artix' as the hostname, change to your liking
 vim /etc/hostname
 	artix
-# you may remove the "::1" line if you disable ipv6
 vim /etc/hosts
 	127.0.0.1	localhost
 	::1             localhost
  	127.0.1.1       artix.localdomain artix
 	0.0.0.0         0.0.0.0
+# you may remove the "::1" line if you disable ipv6
 ln -s /etc/runit/sv/NetworkManager /etc/runit/runsvdir/default
 # here you may change "NetworkManager" for your client of choice, i.e dhcpcd, iwd etc
 
@@ -110,7 +111,9 @@ vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
 # if on nvidia, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
 # add encrypt lvm2 to HOOKS=() before filesystems
-# uncomment COMPRESSION="lz4" for slightly faster boot time
+# if you are on nvidia you can remove kms from HOOKS=(), unless it's a nvidia dGPU and you also have an intel iGPU
+# uncomment COMPRESSION="lz4" for a slightly faster boot time in exchange for a slightly bigger initial ramdisk
+# generate initial ramdisk
 mkinitcpio -P
 
 # create efistub
@@ -122,7 +125,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw nvidia-drm.modeset=1 quiet mitigations=off sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
+rw nvidia-drm.modeset=1 quiet mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
@@ -134,7 +137,7 @@ pacman -S nvidia-dkms
 ## Personal Post-Install Basic Needs
 # install packages needed to build suckless software and start an xorg server
 pacman -S git libx11 libxft libxinerama xorg-server xorg-xinit freetype2
-# xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit
+# xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit if you so desire
 
 # configure keyboard layout for the tty
 vim /etc/vconsole.conf
