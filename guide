@@ -26,7 +26,7 @@ ping -c3 gnu.org
 # check the install disk with lsblk, will be using /dev/sda
 # partition disk with fdisk
 fdisk /dev/sda
-# make 2 partitions, nº1 512M (ESP), nº2 rest of the disk (CRYPT)
+# make 2 partitions, nº1 512M (ESP) marked as "EFI System" type (1), nº2 rest of the disk (CRYPT) with the default "Linux filesystem" type (20)
 # make the ESP partition 1G if you plan on using multiple different kernels
 
 # format partitions (UEFI)
