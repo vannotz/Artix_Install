@@ -2,7 +2,7 @@
 user:root
 passwd:artix
 
-# load your keymap, mine is br-abnt2 
+# load your keymap if needed, mine is br-abnt2 
 loadkeys br-abnt2
 
 # disable annoying beep
