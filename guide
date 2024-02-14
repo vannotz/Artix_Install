@@ -17,7 +17,7 @@ connmanctl
 	agent on
 	# if this returns an error, reboot
 	# list devices
-	devices
+	services
 	# connect to your wifi device
 	connect wifi_XXXXXXX
 # ping to check connection
