@@ -11,8 +11,12 @@ rmmod pcspkr
 # rfkill may block wifi
 rfkill unblock wifi
 
+# your wifi card may be disabled
+ip link set wlan0 up
+
 # connect to wireless internet
 connmanctl
+	enable wifi
 	scan wifi
 	agent on
 	# if this returns an error, reboot
