@@ -129,7 +129,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw quiet rootfstype=ext4 nouveau.modeset=0 nvidia-drm.modeset=1 i915.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt initrd=\intel-ucode.img initrd=\initramfs-linux-zen.img
+rw quiet rootfstype=ext4 nouveau.modeset=0 nvidia-drm.modeset=1 i915.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
