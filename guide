@@ -173,6 +173,7 @@ vim /etc/fstab
 # configuring modules (disabling bluetooth and nvidia configs)
 vim /etc/modprobe.d/modprobe.conf
 	alias net-pf-31 off
+	alias net-pf-10 off
 	alias nouveau off
 	softdep nvidia post: nvidia-uvm
 	options nvidia NVreg_UsePageAttributeTable=1 NVreg_RegistryDwords="OverrideMaxPerf=0x1" NVreg_EnableStreamMemOPs=1
