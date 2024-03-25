@@ -162,6 +162,14 @@ vim /etc/modules-load.d/modules.conf
 vim /usr/lib/sysctl.d/60-mdapi.conf
 	dev.i915.perf_stream_paranoid=0
 
+# extra modules for intel's (i)GPUs
+vim /etc/mkinitcpio.conf
+# add intel_agp i915 to MODULES=() at the end
+
+# disable access time update and increase commit interval
+vim /etc/fstab
+# replace realatime with noatime and change commit=x to 10, this will reduce writes to the disk
+
 # unmount everything before rebooting (it's good pratice)
 exit
 umount -R /mnt
