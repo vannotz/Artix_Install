@@ -170,6 +170,13 @@ vim /etc/mkinitcpio.conf
 vim /etc/fstab
 # replace realatime with noatime and change commit=x to 10, this will reduce writes to the disk
 
+# configuring modules (disabling bluetooth and nvidia configs)
+vim /etc/modprobe.d/modprobe.conf
+	alias net-pf-31 off
+	alias nouveau off
+	softdep nvidia post: nvidia-uvm
+	options nvidia NVreg_UsePageAttributeTable=1 NVreg_RegistryDwords="OverrideMaxPerf=0x1" NVreg_EnableStreamMemOPs=1
+
 # unmount everything before rebooting (it's good pratice)
 exit
 umount -R /mnt
