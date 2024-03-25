@@ -165,6 +165,7 @@ vim /usr/lib/sysctl.d/60-mdapi.conf
 # extra modules for intel's (i)GPUs
 vim /etc/mkinitcpio.conf
 # add intel_agp i915 to MODULES=() at the end
+mkinitcpio -P
 
 # disable access time update and increase commit interval
 vim /etc/fstab
