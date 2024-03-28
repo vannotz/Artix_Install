@@ -115,7 +115,7 @@ vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
 # if on nvidia, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
 # add encrypt lvm2 to HOOKS=() before filesystems
-# if you are on nvidia you can remove kms from HOOKS=(), unless it's a nvidia dGPU and you also have an intel iGPU
+# if you are on nvidia you can remove kms from HOOKS=()
 # uncomment COMPRESSION="lz4" for a slightly faster boot time in exchange for a slightly bigger initial ramdisk
 # generate initial ramdisk
 mkinitcpio -P
@@ -129,7 +129,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw quiet rootfstype=ext4 nouveau.modeset=0 nvidia-drm.modeset=1 i915.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
+rw quiet rootfstype=ext4 nouveau.modeset=0 nvidia-drm.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
@@ -171,13 +171,18 @@ mkinitcpio -P
 vim /etc/fstab
 # replace realatime with noatime and change commit=x to 10, this will reduce writes to the disk
 
-# configuring modules (disabling bluetooth and nvidia configs)
-vim /etc/modprobe.d/modprobe.conf
-	alias net-pf-31 off
-	alias net-pf-10 off
+# configuring nvidia modules
+vim /etc/modprobe.d/nvidia.conf
 	alias nouveau off
 	softdep nvidia post: nvidia-uvm
 	options nvidia NVreg_UsePageAttributeTable=1 NVreg_RegistryDwords="OverrideMaxPerf=0x1" NVreg_EnableStreamMemOPs=1
+# disabling bluetooth
+vim /etc/modprobe.d/net.conf
+	alias net-pf-31 off
+	alias net-pf-10 off
+# fixing possible issue with iwlmvm driver 
+vim /etc/modprobe.d/iwl.conf
+	options iwlmvm power_scheme=1 
 
 # unmount everything before rebooting (it's good pratice)
 exit
