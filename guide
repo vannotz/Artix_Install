@@ -37,7 +37,7 @@ fdisk /dev/sda
 # format partitions (UEFI)
 mkfs.fat -F32 /dev/sda1 <- ESP partition
 fatlabel /dev/sda1 ESP
-cryptsetup luksFormat /dev/sda2 <- CRYPT partition
+cryptsetup -h sha512 luksFormat /dev/sda2 <- CRYPT partition
 cryptsetup luksOpen /dev/sda2 luks
 
 # Create LVM
@@ -113,9 +113,10 @@ ln -s /etc/runit/sv/NetworkManager /etc/runit/runsvdir/default
 # modify mkinitcpio for encryption support
 vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
-# if on nvidia, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
+# if on supprted nvidia cards, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
+# if you'll use the open source nvidia driver, add nouveau
+# if you'll use the proprietary nvidia driver you can remove kms from HOOKS=()
 # add encrypt lvm2 to HOOKS=() before filesystems
-# if you are on nvidia you can remove kms from HOOKS=()
 # uncomment COMPRESSION="lz4" for a slightly faster boot time in exchange for a slightly bigger initial ramdisk
 # generate initial ramdisk
 mkinitcpio -P
@@ -129,7 +130,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw quiet rootfstype=ext4 nouveau.modeset=0 nvidia-drm.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
+rw quiet rootfstype=ext4 nvidia-drm.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
