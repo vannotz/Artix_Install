@@ -175,10 +175,7 @@ vim /etc/modprobe.d/nvidia.conf
 # more options to disable bluetooth and ipv6
 vim /etc/modprobe.d/net.conf
 	alias net-pf-31 off
-	alias net-pf-10 off
-# fixing possible issue with iwlmvm driver 
-vim /etc/modprobe.d/iwl.conf
-	options iwlmvm power_scheme=1 
+	alias net-pf-10 off 
 
 # unmount everything before rebooting (it's good pratice)
 exit
