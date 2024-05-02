@@ -183,3 +183,7 @@ umount -R /mnt
 swapoff -a
 poweroff
 # remove the USB stick or change the boot order on the BIOS before booting again
+
+## Chrooting into an encrypted system with volume groups
+cryptsetup luksOpen /dev/sda2 LUKS
+vgchange -ay
