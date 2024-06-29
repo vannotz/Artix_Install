@@ -58,11 +58,10 @@ mount /dev/sda1 /mnt/boot
 swapon /dev/mapper/vg0-swap
 
 # basestrapping
-basestrap /mnt base base-devel runit elogind-runit linux-zen linux-zen-headers linux-firmware networkmanager-runit efibootmgr lvm2 cryptsetup intel-ucode vim
+basestrap /mnt base base-devel runit elogind-runit linux-zen linux-zen-headers linux-firmware iwd-runit efibootmgr lvm2 cryptsetup intel-ucode vim
 # linux-zen-headers only necessary if on nvidia
 # intel-ucode if on intel, amd-ucode if on amd
-# networkmanager is needed for wireless network, you can only install dhcpcd-runit if you just use ethernet
-# you can change networkmanager-runit for something like iwd-runit if you are more familiar with it, I recommend networkmanager
+# iwd is needed for wireless network, it can also replace dhcphd
 
 ## Post-Basestrap 
 # generate fstab
@@ -107,7 +106,7 @@ vim /etc/hosts
  	127.0.1.1       artix.localdomain artix
 	0.0.0.0         0.0.0.0
 # you may remove the "::1" line if you disable ipv6
-ln -s /etc/runit/sv/NetworkManager /etc/runit/runsvdir/default
+ln -s /etc/runit/sv/iwd /etc/runit/runsvdir/default
 # here you may change "NetworkManager" for your client of choice, i.e dhcpcd, iwd etc
 
 # modify mkinitcpio for encryption support
@@ -130,7 +129,7 @@ efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/d
 (...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw quiet rootfstype=ext4 nvidia-drm.modeset=1 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog intel_iommu=on iommu=pt ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
+rw quiet rootfstype=ext4 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
@@ -141,7 +140,7 @@ pacman -S nvidia-dkms
 
 ## Personal Post-Install Basic Needs
 # install packages needed to build suckless software and start an xorg server
-pacman -S git libx11 libxft libxinerama xorg-server xorg-xinit freetype2
+pacman -S git libx11 libxft libxinerama xorg-server xorg-xinit
 # xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit if you so desire
 
 # configure keyboard layout for the tty
@@ -162,6 +161,9 @@ vim /etc/modules-load.d/modules.conf
 # enable performance support for intel graphics (Sandy Bridge and onwards)
 vim /usr/lib/sysctl.d/60-mdapi.conf
 	dev.i915.perf_stream_paranoid=0
+# enable sysrq keys
+vim /usr/lib/sysctl.d/50-sysrq.conf
+	kernel.sysrq = 1
 
 # disable access time update and increase commit interval
 vim /etc/fstab
@@ -172,10 +174,20 @@ vim /etc/modprobe.d/nvidia.conf
 	alias nouveau off
 	softdep nvidia post: nvidia-uvm
 	options nvidia NVreg_UsePageAttributeTable=1 NVreg_RegistryDwords="OverrideMaxPerf=0x1" NVreg_EnableStreamMemOPs=1
-# more options to disable bluetooth and ipv6
+
+# network tweaks and options
+# futher disabling ipv6 and bluetooth
 vim /etc/modprobe.d/net.conf
 	alias net-pf-31 off
-	alias net-pf-10 off 
+	alias net-pf-10 off
+# MAC address randomization for iwd and network configuration
+vim /etc/iwd/main.conf
+	[General]
+	EnableNetworkConfiguration=true
+	AddressRandomization=network
+	AddressRandomizationRange=full
+	[Network]
+	EnableIPv6=false
 
 # unmount everything before rebooting (it's good pratice)
 exit
@@ -184,6 +196,6 @@ swapoff -a
 poweroff
 # remove the USB stick or change the boot order on the BIOS before booting again
 
-## Chrooting into an encrypted system with volume groups
+## Chrooting into an encrypted system with volume groups if needed
 cryptsetup luksOpen /dev/sda2 LUKS
 vgchange -ay
