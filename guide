@@ -199,3 +199,5 @@ poweroff
 ## Chrooting into an encrypted system with volume groups if needed
 cryptsetup luksOpen /dev/sda2 LUKS
 vgchange -ay
+mount /dev/mapper/vg0-root /mnt
+mount /dev/sda1 /mnt/boot
