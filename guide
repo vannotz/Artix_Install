@@ -53,12 +53,12 @@ mkswap -L SWAP /dev/mapper/vg0-swap
 # mount partitions and turn on swap
 # MOUNT ROOT BEFORE MOUNTING BOOT!
 mount /dev/mapper/vg0-root /mnt
-mkdir /mnt/boot
-mount /dev/sda1 /mnt/boot
+mkdir /mnt/efi
+mount /dev/sda1 /mnt/efi
 swapon /dev/mapper/vg0-swap
 
 # basestrapping
-basestrap /mnt base base-devel runit elogind-runit linux-zen linux-zen-headers linux-firmware iwd-runit efibootmgr lvm2 cryptsetup intel-ucode vim
+basestrap /mnt base base-devel runit elogind-runit linux-zen linux-zen-headers linux-firmware iwd-runit efibootmgr lvm2 cryptsetup intel-ucode vim git
 # linux-zen-headers only necessary if on nvidia
 # intel-ucode if on intel, amd-ucode if on amd
 # iwd is needed for wireless network, it can also replace dhcphd
@@ -109,38 +109,54 @@ vim /etc/hosts
 ln -s /etc/runit/sv/iwd /etc/runit/runsvdir/default
 # here you may change "NetworkManager" for your client of choice, i.e dhcpcd, iwd etc
 
+# Artix has no "linuxx64.efi.stub" file, due to no systemd, if you are on Arch you can skip this section's steps
+# change $USER to the user you made
+su - $USER
+mkdir -p /home/$USER/.config/aur
+cd /home/$USER/.config/aur
+git clone https://aur.archlinux.org/efistub-standalone.git
+cd efistub-standalone
+makepkg -si
+
 # modify mkinitcpio for encryption support
 vim /etc/mkinitcpio.conf
 # add ext4 to MODULES=()
-# if on supprted nvidia cards, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
+# if on supported nvidia cards, add nvidia nvidia_modeset nvidia_uvm nvidia_drm after ext4
 # if you'll use the open source nvidia driver, add nouveau
-# if you'll use the proprietary nvidia driver you can remove kms from HOOKS=()
+# if you'll use the proprietary nvidia driver, you can remove kms from HOOKS=()
 # add encrypt lvm2 to HOOKS=() before filesystems
 # uncomment COMPRESSION="lz4" for a slightly faster boot time in exchange for a slightly bigger initial ramdisk
 # generate initial ramdisk
-mkinitcpio -P
-
-# create efistub
-efibootmgr -d /dev/sda -p 1 -c -L Artix -l /vmlinuz-linux-zen -u 'cryptdevice=/dev/sda2:luks:allow-discards root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw initrd=\intel-ucode.img initrd=\initramfs-linux-zen.img' -v
-# resume = SWAP
-# -p 1 = ESP partition number (if /mnt/boot is the mount point for /dev/sda1, then -p 1, if the moint point for /dev/sda2, then -p 2 ...)
-# i recommend eventually switching from pointing efibootmgr with the partition scheme to using each partition's UUIDs, run blkid to get them
+vim /etc/mkinitcpio.d/linux-zen.preset
+# uncomment ALL_config="/etc/mkinitcpio.conf" and all UKI related lines
+# comment out all "image" related lines
+# make kernel cmdline
+mkdir /etc/kernel
+vim /etc/kernel/cmdline
+	cryptdevice=/dev/sda2:luks:allow-discards root=/dev/mapper/vg0-root resume=/dev/mapper/vg0-swap rw initrd=\intel-ucode.img
+# allow-discards needed if on an SSD
+# -p 1 = ESP partition number (if /mnt/efi is the mount point for /dev/sda1, then -p 1, if the moint point for /dev/sda2, then -p 2 ...)
+# i recommend eventually switching from pointing the kernel with the partition scheme to using each partition's UUIDs, run blkid to get them
 # if you do the above, the efistub would look something like this, mind the "=UUID=" between the partition and it's UUID
-(...) 'cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
+(...) cryptdevice=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx:luks:allow-discards root=UUID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx (...)
 # add desired kernel parameters after rw, separate with spaces ( mitigations=off nowatchdog quiet ...)
 # my kernel parameters, for reference
-rw quiet rootfstype=ext4 mitigations=off zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=2147483642 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
+rw quiet rootfstype=ext4 zswap.compressor=lz4 sysctl.vm.swappiness=10 sysctl.vm.max_map_count=1048576 nowatchdog ipv6.disable=1 module_blacklist=nouveau,pcspkr,iTCO_wdt,bluetooth,btusb
 # blacklisting nouveau in the kernel parameters "module_blacklist=nouveau" is recommended if you eventually install the proprietary nvidia drivers
 # blacklisting pcspkr in the kernel paramaters "module_blacklist=pcspkr" will remove any annoying beeps
 # initrd=\*-ucode for specific cpu (amd or intel)
 # -zen because of the zen kernel
+mkinitcpio -P
+
+# set up efibootmgr
+efibootmgr -d /dev/sda -p 1 -c -L Artix -l \EFI\Linux\arch-linux-zen.efi' -v
 
 # install the nvidia-dkms kernel if needed
 pacman -S nvidia-dkms
 
 ## Personal Post-Install Basic Needs
 # install packages needed to build suckless software and start an xorg server
-pacman -S git libx11 libxft libxinerama xorg-server xorg-xinit
+pacman -S libx11 libxft libxinerama xorg-server
 # xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit if you so desire
 
 # configure keyboard layout for the tty
@@ -195,6 +211,12 @@ umount -R /mnt
 swapoff -a
 poweroff
 # remove the USB stick or change the boot order on the BIOS before booting again
+
+# enabling secure boot
+pacman -S sbctl # from arch's [extra] repo's
+sbctl sign -s -o /usr/lib/systemd/boot/efi/linuxx64.efi.stub.signed /usr/lib/systemd/boot/efi/linuxx64.efi.stub
+sbctl sign -s /efi/EFI/Linux/arch-linux-zen.efi
+sbctl sign -s /efi/EFI/Linux/arch-linux-zen-fallback.efi
 
 ## Chrooting into an encrypted system with volume groups if needed
 cryptsetup luksOpen /dev/sda2 LUKS
