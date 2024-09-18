@@ -156,7 +156,7 @@ pacman -S nvidia-dkms
 
 ## Personal Post-Install Basic Needs
 # install packages needed to build suckless software and start an xorg server
-pacman -S libx11 libxft libxinerama xorg-server
+pacman -S libx11 libxft libxinerama xorg-server pipewire pipewire-pulse wireplumber ttf-hack ttf-jetbrains-mono
 # xorg-xinit will give startx, after you've enabled the Arch repos you can instead install sx and remove xorg-xinit if you so desire
 
 # configure keyboard layout for the tty
